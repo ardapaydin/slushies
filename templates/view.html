@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Todo {{todo.id}}{% endblock %}
+{% block content %}
+<div class="justify-between flex">
+<h2 class="mb-4 text-2xl font-bold text-white">
+  Viewing - {{ todo.id }}
+</h2>
+<a href="/" class="rounded border border-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-white flex items-center gap-1 transition">
+  <span class="material-icons" style="font-size:18px;">arrow_back</span> Back to Todos
+</a>
+</div>  
+<div class="flex flex-col items-center mt-2">
+    <form action="/todo/{{ todo.id }}" method="POST" class="flex flex-col w-full gap-3 bg-[#2d2d2d] rounded shadow-lg p-6 transition-all">
+        <textarea name="content" placeholder="Todo content" class="mb-2 p-3 rounded bg-[#232323] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" rows="5" maxlength="255">{{ todo.content }}</textarea>
+        <label class="inline-flex items-center mb-4">
+            <input type="checkbox" name="completed" {% if todo.completed %}checked{% endif %} class="h-5 w-5 text-blue-600 transition">
+            <span class="ml-2 text-white">Completed</span>
+        </label>
+
+        <h1 class="text-white">Priority</h1>
+        <select name="priority" class="mb-2 p-3 rounded bg-[#232323] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <option value="low" {% if todo.priority == 'low' %}selected{% endif %}>Low</option>
+            <option value="medium" {% if todo.priority == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="high" {% if todo.priority == 'high' %}selected{% endif %}>High</option>
+        </select>
+
+        <button type="submit" class="rounded border border-blue-500 hover:bg-blue-600 px-4 py-2 text-white font-semibold shadow transition">
+            <span class="material-icons align-middle mr-1" style="font-size:18px;">save</span>
+            Update Todo
+        </button>
+    </form> 
+</div>
+{% endblock %}

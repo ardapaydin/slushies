@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Todo{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-2xl font-bold text-white">
+  Creating Todo
+</h2>
+<div class="flex flex-col items-center">
+    <form action="/todo/create" method="POST" class="flex flex-col w-full rounded-lg gap-3 bg-[#2d2d2d] rounded shadow-lg p-6 transition-all">
+        <textarea name="content" placeholder="Todo content" class="mb-2 p-3 rounded bg-[#232323] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition" rows="5" maxlength="255"></textarea>
+        
+        <h1 class="text-white">Priority</h1>
+        <select name="priority" class="mb-2 p-3 rounded bg-[#232323] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select>
+
+        <button type="submit" class="rounded bg-blue-500 hover:bg-blue-600 px-4 py-2 text-white font-semibold shadow transition">
+            <span class="material-icons align-middle mr-1" style="font-size:18px;">add</span>
+            Create Todo
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Todo{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-2xl font-bold text-white">
+  To-Dos
+</h2>
+
+<script>
+  const todos = {{ todos | tojson | safe }};
+  console.log(`[TODOS]: ${JSON.stringify(todos)}`);
+</script>
+
+<script>
+  async function deleteTodo(id) {
+    await fetch("/todo/" + id, { method: "delete" })
+    window.location.reload();
+  }
+
+  async function editTodo(id) {
+    const todo = todos.find(todo => todo.id === id);
+    const formData = new FormData();
+    formData.append('content', todo.content);
+    formData.append('priority', todo.priority);
+    formData.append('completed', !todo.completed ? 'on' : 'off');
+    await fetch("/todo/" + id, {
+      method: "post",
+      body: formData
+    })
+    window.location.reload();
+  }
+  async function bulkDelete() {
+    const checked = Array.from(document.querySelectorAll('input[name="bulk"]:checked')).map(c => c.value);
+    const formdata = new FormData();
+    checked.forEach(id => formdata.append('ids', id));
+    await fetch("/todos/bulk-delete", {
+      method: "post",
+      body: formdata
+    })
+
+    window.location.reload();
+  }
+
+  async function bulkComplete() {
+    const checked = Array.from(document.querySelectorAll('input[name="bulk"]:checked')).map(c => c.value);
+
+    const formdata = new FormData();
+    checked.forEach(id => formdata.append('ids', id));
+    await fetch("/todos/bulk-complete", {
+      method: "post",
+      body: formdata
+    })
+
+    window.location.reload();
+  }
+
+</script>
+
+<div class="flex flex-col gap-3">
+  {% for todo in todos %}
+  <div class="mb-2 flex items-center justify-between rounded bg-[#2d2d2d] p-4 shadow hover:shadow-lg">
+    <div class="flex items-center gap-3">
+      <input type="checkbox" name="bulk" value="{{ todo.id }}" class="mr-2 h-5 w-5 accent-blue-500">
+      <div
+        class="rounded-full h-6 w-6 border-2 items-center justify-center flex hover:opacity-50 cursor-pointer transition"
+        onclick="editTodo({{ todo.id }})">
+        {% if todo.completed %}
+        <div class="rounded-full h-full w-full bg-green-500"></div>
+        {% endif %}
+      </div>
+      <span class="text-white text-lg font-medium">{{ todo.content }}</span>
+      <div class="{{
+          todo.priority == 'low' and 'bg-green-500' or todo.priority == 'medium' and 'bg-yellow-500' or 'bg-red-500'
+        }} px-2 py-1 rounded text-white text-sm">
+        {{ todo.priority.capitalize() }}
+      </div>
+    </div>
+    <div class="flex gap-2 items-center">
+
+      <span class="text-gray-400 text-sm">
+        {{todo.created_at}}
+      </span>
+
+      <a href="/todo/{{ todo.id }}"
+        class="rounded border border-green-500 hover:bg-green-600 px-4 py-2 text-white flex items-center gap-1 transition">
+        <span class="material-icons" style="font-size:18px;">visibility</span> View
+      </a>
+      <button onclick="deleteTodo({{ todo.id }})"
+        class="rounded border border-red-500 hover:bg-red-600 px-4 py-2 text-white flex items-center gap-1 transition">
+        <span class="material-icons" style="font-size:18px;">delete</span> Delete
+      </button>
+    </div>
+  </div>
+  {% else %}
+  <div class="flex items-center justify-center bg-[#2d2d2d] p-4 rounded shadow">
+    <span class="text-gray-300 text-center py-4">No to-do found.</span>
+  </div>
+  {% endfor %}
+</div>
+<div class="flex gap-2 mt-2">
+  <button onclick="bulkComplete()"
+    class="rounded border border-yellow-500 hover:bg-yellow-600 px-4 py-2 text-white font-bold shadow transition flex items-center gap-1">
+    <span class="material-icons" style="font-size:18px;">check</span> Bulk Complete
+  </button>
+  <button onclick="bulkDelete()"
+    class="rounded border border-red-500 hover:bg-red-600 px-4 py-2 text-white font-bold shadow transition flex items-center gap-1">
+    <span class="material-icons" style="font-size:18px;">delete</span> Bulk Delete
+  </button>
+</div>
+<a href="/todo/create"
+  class="mt-4 rounded border-dashed border-2 border-blue-500 hover:bg-blue-600 justify-center flex px-4 py-2 text-white font-bold text-xl shadow transition">
+  <span class="material-icons" style="font-size:22px;">add</span>
+</a>
+
+<div class="mt-4 text-center">
+  Made for <a href="https://slushies.hackclub.com/" class="text-blue-500 underline">Slushies event</a>
+</div>
+
+{% endblock %}
