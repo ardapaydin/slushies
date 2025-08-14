@@ -17,6 +17,15 @@ def init_db():
         content VARCHAR(255) NOT NULL,
         completed BOOLEAN NOT NULL DEFAULT FALSE,
         priority VARCHAR(255) NOT NULL DEFAULT 'low',
+        category_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        edited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+    ''')
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         edited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
@@ -34,21 +43,32 @@ with app.app_context():
         cursor.execute('SELECT * FROM todos')
         todos = cursor.fetchall()
         todos = sorted(todos, key=lambda x: priority_order.get(x['priority'], -99), reverse=True)
-        return render_template('index.html', todos=todos)
-    
+        cursor.execute('SELECT * FROM categories')
+        categories = cursor.fetchall()
+
+        return render_template('index.html', todos=todos, categories=categories)
+
     @app.route('/todo/create', methods=['POST','GET'])
     def create_todo():
         if request.method == 'GET':
-            return render_template('create.html')
+            cursor.execute('SELECT * FROM categories')
+            categories = cursor.fetchall()
+            return render_template('create.html', categories=categories)
         content = request.form.get('content')
         priority = request.form.get('priority')
+        category_id = request.form.get('category_id')
         if not priority or priority not in ['low', 'medium', 'high']:return "Invalid priority", 400
         if not content or not isinstance(content, str): return "Invalid input", 400
         if content.strip() == "": return "Content cannot be empty", 400
         if content.__len__() > 255: return "Content is too long", 400
-        cursor.execute('INSERT INTO todos (content, priority) VALUES (%s, %s)', (
+        if category_id:
+            cursor.execute('SELECT * FROM categories WHERE id = %s', (category_id,))
+            category = cursor.fetchone()
+            if not category: return "Invalid category ID",400
+        cursor.execute('INSERT INTO todos (content, priority, category_id) VALUES (%s, %s, %s)', (
             content,
-            priority
+            priority,
+            category_id
         ))
         conn.commit()
         return redirect(url_for('index'))
@@ -59,19 +79,30 @@ with app.app_context():
             content = request.form.get('content')
             completed = request.form.get('completed')
             priority = request.form.get('priority')
+            category_id = request.form.get('category_id')
             completed = True if completed == "on" else False
             if not priority or priority not in ['low', 'medium', 'high']: return "Invalid priority", 400
             if not content or not isinstance(content, str): return "Invalid input; content != string", 400
+
+            if category_id:
+                cursor.execute('SELECT * FROM categories WHERE id = %s', (category_id,))
+                category = cursor.fetchone()
+                if not category: return "Invalid category ID", 400
+
             if content.strip() == "": return "Content cannot be empty", 400
             if content.__len__() > 255: return "Content is too long", 400
-            cursor.execute('UPDATE todos SET content = %s, completed = %s, priority = %s WHERE id = %s', (content, completed, priority, id))
+            cursor.execute('UPDATE todos SET content = %s, completed = %s, priority = %s, category_id = %s WHERE id = %s', (content, completed, priority, category_id, id))
             conn.commit()
             return redirect(url_for('index'))
         cursor.execute('SELECT * FROM todos WHERE id = %s', (id,))
         todo = cursor.fetchone()
         if not todo: return "Todo not found", 404
-        return render_template('view.html', todo=todo)
-    
+
+        cursor.execute('SELECT * FROM categories')
+        categories = cursor.fetchall()
+
+        return render_template('view.html', todo=todo, categories=categories)
+
     @app.route('/todo/<int:id>', methods=["DELETE"])
     def delete_todo(id):
         cursor.execute('DELETE FROM todos WHERE id = %s', (id,))
@@ -119,6 +150,27 @@ with app.app_context():
         cursor.execute('UPDATE todos SET completed = TRUE WHERE id IN (%s)' % ','.join(['%s'] * len(ids)), tuple(ids))
         conn.commit()
         return redirect(url_for('index'))
+    
+    @app.route('/category/create', methods=['POST','GET'])
+    def create_category():
+        if request.method == 'POST':
+            name = request.form.get('name')
+            if not name or not isinstance(name, str): return "Invalid input; name != string", 400
+            if name.strip() == "": return "Name cannot be empty", 400
+            if name.__len__() > 24: return "Name is too long", 400
+            cursor.execute('INSERT INTO categories (name) VALUES (%s)', (name,))
+            conn.commit()
+            return redirect(url_for('index'))
+        return render_template('category.html')
+    
+    @app.route('/category/<int:id>', methods=['DELETE'])
+    def delete_category(id):
+        cursor.execute('DELETE FROM categories WHERE id = %s', (id,))
+        conn.commit()
+        cursor.execute('UPDATE todos SET category_id = NULL WHERE category_id = %s', (id,))
+        conn.commit()
+        return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

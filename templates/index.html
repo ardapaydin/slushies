@@ -53,10 +53,15 @@
     window.location.reload();
   }
 
+  async function deleteCategory(id) {
+    await fetch("/category/" + id, { method: "delete" });
+    window.location.reload();
+  }
+
 </script>
 
 <div class="flex flex-col gap-3">
-  {% for todo in todos %}
+  {% for todo in todos if not todo.category_id %}
   <div class="mb-2 flex items-center justify-between rounded bg-[#2d2d2d] p-4 shadow hover:shadow-lg">
     <div class="flex items-center gap-3">
       <input type="checkbox" name="bulk" value="{{ todo.id }}" class="mr-2 h-5 w-5 accent-blue-500">
@@ -90,9 +95,55 @@
       </button>
     </div>
   </div>
-  {% else %}
-  <div class="flex items-center justify-center bg-[#2d2d2d] p-4 rounded shadow">
-    <span class="text-gray-300 text-center py-4">No to-do found.</span>
+  {% endfor %}
+
+  {% for category in categories %}
+  <div class="flex flex-col">
+    <div class="flex items-center gap-3 mb-2 justify-between">
+      <span class="text-white text-lg font-medium">{{ category.name }}</span>
+      <div class="flex gap-2 items-center">
+        <button onclick="deleteCategory({{ category.id }})"
+          class="rounded border border-red-500 hover:bg-red-600 px-4 py-2 text-white flex items-center gap-1 transition">
+          <span class="material-icons" style="font-size:18px;">delete</span> Delete
+        </button>
+      </div>
+    </div>
+
+    {% for todo in todos if todo.category_id == category.id %}
+    <div class="mb-2 flex items-center justify-between rounded bg-[#2d2d2d] p-4 shadow hover:shadow-lg">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="bulk" value="{{ todo.id }}" class="mr-2 h-5 w-5 accent-blue-500">
+        <div
+          class="rounded-full h-6 w-6 border-2 items-center justify-center flex hover:opacity-50 cursor-pointer transition"
+          onclick="editTodo({{ todo.id }})">
+          {% if todo.completed %}
+          <div class="rounded-full h-full w-full bg-green-500"></div>
+          {% endif %}
+        </div>
+        <span class="text-white text-lg font-medium">{{ todo.content}}</span>
+        <div class="{{
+          todo.priority == 'low' and 'bg-green-500' or todo.priority == 'medium' and 'bg-yellow-500' or 'bg-red-500'
+        }} px-2 py-1 rounded text-white text-sm">
+          {{ todo.priority.capitalize() }}
+        </div>
+      </div>
+      <div class="flex gap-2 items-center">
+
+        <span class="text-gray-400 text-sm">
+          {{todo.created_at}}
+        </span>
+
+        <a href="/todo/{{ todo.id }}"
+          class="rounded border border-green-500 hover:bg-green-600 px-4 py-2 text-white flex items-center gap-1 transition">
+          <span class="material-icons" style="font-size:18px;">visibility</span> View
+        </a>
+        <button onclick="deleteTodo({{ todo.id }})"
+          class="rounded border border-red-500 hover:bg-red-600 px-4 py-2 text-white flex items-center gap-1 transition">
+          <span class="material-icons" style="font-size:18px;">delete</span> Delete
+        </button>
+      </div>
+    </div>
+    {% endfor %}
   </div>
   {% endfor %}
 </div>
@@ -109,6 +160,10 @@
 <a href="/todo/create"
   class="mt-4 rounded border-dashed border-2 border-blue-500 hover:bg-blue-600 justify-center flex px-4 py-2 text-white font-bold text-xl shadow transition">
   <span class="material-icons" style="font-size:22px;">add</span>
+</a>
+<a href="/category/create"
+  class="mt-4 rounded border-dashed border-2 w-32 text-xs items-center border-blue-500 hover:bg-blue-600 justify-center flex px-4 py-2 text-white font-bold text-xl shadow transition">
+  Create Category
 </a>
 
 <div class="mt-4 text-center">
