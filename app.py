@@ -1,11 +1,13 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 app = Flask(__name__)
+
 conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="slushies"
+    host=os.environ.get("MYSQL_HOST", "localhost"),
+    user=os.environ.get("MYSQL_USER", "root"),
+    password=os.environ.get("MYSQL_PASSWORD", ""),
+    database=os.environ.get("MYSQL_DATABASE", "slushies")
 )
 cursor = conn.cursor(dictionary=True)
 priority_order = {'low': 0, 'medium': 1, 'high': 2}

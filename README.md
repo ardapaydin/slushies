@@ -11,16 +11,13 @@ Simple Todo application built with Flask and MySQL for [Slushies](https://slushi
 pip install -r requirements.txt
 ```
 
-2. Set up the database config in `app.py`:
-```py
-...
-conn = mysql.connector.connect( # line 4
-    host="localhost",
-    user="root",
-    password="",
-    database="slushies"
-)
-...
+2. Set up the database config in `.env`:
+
+```
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=slushies
 ```
 
 3. And run the application:
