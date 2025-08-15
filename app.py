@@ -1,7 +1,10 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
+import dotenv
 app = Flask(__name__)
+
+dotenv.load_dotenv()
 
 conn = mysql.connector.connect(
     host=os.environ.get("MYSQL_HOST", "localhost"),
@@ -175,4 +178,4 @@ with app.app_context():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=int(os.environ.get("PORT", 5000)))

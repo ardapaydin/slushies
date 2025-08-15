@@ -18,6 +18,7 @@ MYSQL_HOST=localhost
 MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_DATABASE=slushies
+PORT=5000
 ```
 
 3. And run the application:
