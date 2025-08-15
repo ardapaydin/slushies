@@ -73,7 +73,7 @@ with app.app_context():
         cursor.execute('INSERT INTO todos (content, priority, category_id) VALUES (%s, %s, %s)', (
             content,
             priority,
-            category_id
+            category_id if category_id else None
         ))
         conn.commit()
         return redirect(url_for('index'))
@@ -96,7 +96,7 @@ with app.app_context():
 
             if content.strip() == "": return "Content cannot be empty", 400
             if content.__len__() > 255: return "Content is too long", 400
-            cursor.execute('UPDATE todos SET content = %s, completed = %s, priority = %s, category_id = %s WHERE id = %s', (content, completed, priority, category_id, id))
+            cursor.execute('UPDATE todos SET content = %s, completed = %s, priority = %s, category_id = %s WHERE id = %s', (content, completed, priority, category_id if category_id else None, id))
             conn.commit()
             return redirect(url_for('index'))
         cursor.execute('SELECT * FROM todos WHERE id = %s', (id,))
